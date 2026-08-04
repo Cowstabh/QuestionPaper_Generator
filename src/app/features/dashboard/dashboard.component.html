@@ -1,0 +1,374 @@
+<div class="dashboard-container">
+  <!-- Top Header Bar -->
+  <div class="header-bar">
+    <h2>Question Paper Generator</h2>
+    <button class="btn-logout" (click)="logout()">Logout</button>
+  </div>
+
+  <!-- Main Centered Content -->
+  <div class="card" style="position: relative;">
+    
+    <!-- 🟢 UPDATED: The Loading Overlay (Now handles generation AND reviewing) -->
+    <div class="loading-overlay" *ngIf="isGenerating || isReviewing">
+      <div class="spinner"></div>
+      <div class="loading-text">
+        {{ isReviewing ? 'AI is auditing your paper...' : (isPreviewMode ? 'Packaging Document...' : 'Drafting Paper with AI...') }}
+      </div>
+      <div class="loading-subtext">
+        {{ isReviewing ? 'Running multi-pass syllabus and cognitive checks.' : 'Please wait, this usually takes 15 to 20 seconds.' }}
+      </div>
+    </div>
+
+    <!-- 🟢 UPDATED: Tab Navigation (Added Review Tab) -->
+    <div class="tab-navigation" style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; justify-content: flex-start;">
+      <button class="btn-outline" (click)="switchTab('create')" 
+        [ngStyle]="{'background-color': currentTab === 'create' ? '#eef2ff' : 'transparent', 
+                    'font-weight': currentTab === 'create' ? 'bold' : 'normal',
+                    'border-color': currentTab === 'create' ? '#4f46e5' : '#ccc'}"
+        style="padding: 8px 20px; width: auto;">
+        Draft New Paper
+      </button>
+      <button class="btn-outline" (click)="switchTab('history')" 
+        [ngStyle]="{'background-color': currentTab === 'history' ? '#eef2ff' : 'transparent', 
+                    'font-weight': currentTab === 'history' ? 'bold' : 'normal',
+                    'border-color': currentTab === 'history' ? '#4f46e5' : '#ccc'}"
+        style="padding: 8px 20px; width: auto;">
+        My Past Papers
+      </button>
+      <button class="btn-outline" (click)="switchTab('review')" 
+        [ngStyle]="{'background-color': currentTab === 'review' ? '#eef2ff' : 'transparent', 
+                    'font-weight': currentTab === 'review' ? 'bold' : 'normal',
+                    'border-color': currentTab === 'review' ? '#4f46e5' : '#ccc'}"
+        style="padding: 8px 20px; width: auto;">
+        Review & Audit
+      </button>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+
+    <!-- ============================================== -->
+    <!-- TAB 1: THE CREATE FLOW (Form & Preview)        -->
+    <!-- ============================================== -->
+    <div *ngIf="currentTab === 'create'">
+      
+      <!-- VIEW 1: THE CONFIG FORM -->
+      <div *ngIf="!isPreviewMode">
+        <h3>Configure Your Test Paper</h3>
+
+        <!-- Side-by-Side Form Row 1 -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Education Board <span class="asterisk">*</span></label>
+            <select class="form-control" [(ngModel)]="paperConfig.board" name="board">
+              <option value="" disabled selected>Select Board</option>
+              <option value="CBSE">CBSE</option>
+              <option value="ICSE">ICSE</option>
+              <option value="State Board">State Board</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Class / Grade <span class="asterisk">*</span></label>
+            <select class="form-control" [(ngModel)]="paperConfig.classLevel" name="classLevel">
+              <option value="" disabled selected>Select Class</option>
+              <option value="Class 9">Class 9</option>
+              <option value="Class 10">Class 10</option>
+              <option value="Class 11">Class 11</option>
+              <option value="Class 12">Class 12</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Side-by-Side Form Row 2 -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Subject <span class="asterisk">*</span></label>
+            <input type="text" class="form-control" placeholder="e.g. Physics, Mathematics" [(ngModel)]="paperConfig.subject" name="subject">
+          </div>
+
+          <div class="form-group">
+            <label>Total Marks <span class="asterisk">*</span></label>
+            <input type="number" class="form-control" placeholder="e.g. 80" [(ngModel)]="paperConfig.totalMarks" name="totalMarks">
+          </div>
+        </div>
+
+        <!-- Full Width Row -->
+        <div class="form-group full-width">
+          <label>Chapters / Topics</label>
+          <textarea class="form-control" placeholder="Enter chapters separated by commas (e.g., Electricity, Magnetic Effects)" [(ngModel)]="paperConfig.chapters" name="chapters"></textarea>
+        </div>
+
+        <!-- Generate Button -->
+        <button class="btn-generate" (click)="previewPaper()" 
+          [disabled]="isGenerating || !paperConfig.board || !paperConfig.classLevel || !paperConfig.subject || !paperConfig.totalMarks">
+          <span *ngIf="isGenerating">Drafting Paper with AI...</span>
+          <span *ngIf="!isGenerating">Generate Preview</span>
+        </button>
+      </div>
+
+      <!-- VIEW 2: THE PREVIEW UI -->
+      <div *ngIf="isPreviewMode" class="preview-container">
+        <div class="preview-header">
+          <h3>Draft Preview</h3>
+          <button class="btn-secondary" (click)="editCriteria()" [disabled]="isGenerating">Edit Form</button>
+        </div>
+
+        <!-- Preview Table -->
+        <div class="table-responsive">
+          <table class="preview-table">
+            <thead>
+              <tr>
+                <th width="10%">Q.No</th>
+                <th width="80%">Question</th>
+                <th width="10%">Marks</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of parsedQuestions" [ngClass]="{'section-header': row.isHeader}">
+                
+                <!-- If it's a header, span all 3 columns -->
+                <td *ngIf="row.isHeader" colspan="3" class="center-text">
+                  <strong>{{ row.questionText }}</strong>
+                </td>
+
+                <!-- If it's a standard question, render the 3 separate columns -->
+                <ng-container *ngIf="!row.isHeader">
+                  <td class="center-text"><strong *ngIf="row.sNo">{{ row.sNo }}.</strong></td>
+                  <td>{{ row.questionText }}</td>
+                  <td class="center-text"><strong>{{ row.marks }}</strong></td>
+                </ng-container>
+
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="preview-actions">
+          <button class="btn-outline" (click)="previewPaper()" [disabled]="isGenerating">
+            <span *ngIf="isGenerating">Regenerating...</span>
+            <span *ngIf="!isGenerating">Regenerate with AI</span>
+          </button>
+          <button class="btn-generate" (click)="downloadPaper()" [disabled]="isGenerating">
+            <span *ngIf="isGenerating">Packaging...</span>
+            <span *ngIf="!isGenerating">Approve & Download (.docx)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ============================================== -->
+    <!-- TAB 2: THE HISTORY VIEW                          -->
+    <!-- ============================================== -->
+    <div *ngIf="currentTab === 'history'">
+      <h3>Your Generated Papers</h3>
+      <p style="font-size: 0.9em; color: gray; margin-bottom: 15px;">Documents are automatically cleared from the server after 30 days to save space.</p>
+
+      <div class="table-responsive">
+        <table class="preview-table">
+          <thead>
+            <tr>
+              <th width="25%" style="text-align: left; padding-left: 10px;">Date Created</th>
+              <th width="25%" style="text-align: left;">Subject</th>
+              <th width="25%" style="text-align: left;">Class & Board</th>
+              <th width="10%" style="text-align: center;">Marks</th>
+              <th width="15%" style="text-align: center;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let paper of paperHistory">
+              <td style="text-align: left; padding-left: 10px;">{{ paper.createdAt | date:'MMM d, y, h:mm a' }}</td>
+              <td style="text-align: left;"><strong>{{ paper.subject }}</strong></td>
+              <td style="text-align: left;">{{ paper.classLevel }} ({{ paper.board }})</td>
+              <td style="text-align: center;">{{ paper.totalMarks }}</td>
+              <td style="text-align: center;">
+                <button class="btn-generate" (click)="downloadFromHistory(paper)" style="padding: 5px 15px; font-size: 0.9em; width: 100%;">
+                  Download
+                </button>
+              </td>
+            </tr>
+            
+            <!-- Empty State -->
+            <tr *ngIf="paperHistory.length === 0">
+              <td colspan="5" style="text-align: center; padding: 30px; color: gray;">
+                You haven't generated any papers yet.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+   <!-- ============================================== -->
+    <!-- 🟢 NEW TAB 3: THE REVIEW & AUDIT FLOW          -->
+    <!-- ============================================== -->
+    <div *ngIf="currentTab === 'review'">
+    <!-- KEEP ONLY THIS WRAPPED IN THE ERROR BANNER -->
+<div class="error-banner" *ngIf="errorMessage">
+  <div class="error-banner-content">
+    <span style="font-size: 1.2em;">⚠️</span>
+    <div>
+      <strong>Action Required:</strong>
+      <div>{{ errorMessage }}</div>
+    </div>
+  </div>
+  <button class="error-banner-close" (click)="errorMessage = ''" title="Dismiss">✕</button>
+</div>
+      <!-- VIEW 1: THE UPLOAD FORM -->
+      <div *ngIf="!hasAuditResults">
+        <h3>Smart Review & Audit</h3>
+        <p class="subtitle">Upload an existing paper. The AI will audit syllabus alignment, cognitive difficulty, and phrasing.</p>
+
+        <!-- 🟢 NEW: User Guidance Box -->
+        <div class="guidance-box">
+          <strong>💡 Before you upload:</strong><br>
+          To ensure accurate AI analysis, please verify that <strong>both</strong> your Syllabus Context and Question Paper strictly match the <strong>Subject</strong> and <strong>Class</strong> you select below. Mismatched files (e.g., a Math paper with an Economics syllabus) will be rejected by the AI validator.
+        </div>
+
+        <!-- Target Demographic -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Education Board <span class="asterisk">*</span></label>
+            <select class="form-control" [(ngModel)]="reviewConfig.board">
+              <option value="" disabled selected>Select Board</option>
+              <option value="CBSE">CBSE</option>
+              <option value="ICSE">ICSE</option>
+              <option value="State Board">State Board</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Target Class / Grade <span class="asterisk">*</span></label>
+            <select class="form-control" [(ngModel)]="reviewConfig.classLevel">
+              <option value="" disabled selected>Select Class</option>
+              <option value="Class 9">Class 9</option>
+              <option value="Class 10">Class 10</option>
+              <option value="Class 11">Class 11</option>
+              <option value="Class 12">Class 12</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Subject <span class="asterisk">*</span></label>
+            <input type="text" class="form-control" placeholder="e.g. Economics" [(ngModel)]="reviewConfig.subject">
+          </div>
+        </div>
+
+        <!-- SYLLABUS UPLOAD ZONE -->
+        <div class="form-group full-width">
+          <label>Allowed Syllabus Context <span class="asterisk">*</span></label>
+          
+          <div class="dropzone" [ngClass]="{'drag-active': isDraggingSyllabus}" (dragover)="onDragOverSyllabus($event)" (dragleave)="onDragLeaveSyllabus($event)" (drop)="onDropSyllabus($event)" (click)="syllabusInput.click()" *ngIf="!syllabusFile">
+            <p>Drag and drop your <strong>Syllabus Document</strong> here</p>
+            <p class="subtext">Supports .pdf, .docx, and .xlsx</p>
+            <input type="file" #syllabusInput (change)="onSyllabusFileSelected($event)" accept=".pdf,.docx,.xlsx" style="display: none;">
+          </div>
+
+          <div class="file-info" *ngIf="syllabusFile">
+            <span>📄 {{ syllabusFile.name }}</span>
+            <button class="btn-remove" (click)="removeSyllabusFile()">Remove</button>
+          </div>
+
+          <div class="or-divider" *ngIf="!syllabusFile">OR</div>
+
+          <div class="form-group full-width" *ngIf="!syllabusFile">
+            <textarea class="form-control" rows="4" placeholder="Manually paste the exact chapters, topics, or guidelines here..." [(ngModel)]="reviewConfig.syllabusText"></textarea>
+          </div>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 25px 0;">
+
+        <!-- QUESTION PAPER UPLOAD ZONE -->
+        <div class="form-group full-width">
+          <label>Upload Question Paper <span class="asterisk">*</span></label>
+          
+          <div class="dropzone" [ngClass]="{'drag-active': isDraggingPaper}" (dragover)="onDragOverPaper($event)" (dragleave)="onDragLeavePaper($event)" (drop)="onDropPaper($event)" (click)="paperInput.click()" *ngIf="!paperFile">
+            <p>Drag and drop your <strong>Question Paper</strong> here</p>
+            <p class="subtext">Supports .pdf, .docx, and .xlsx</p>
+            <input type="file" #paperInput (change)="onPaperFileSelected($event)" accept=".pdf,.docx,.xlsx" style="display: none;">
+          </div>
+
+          <div class="file-info" *ngIf="paperFile">
+            <span>📄 {{ paperFile.name }}</span>
+            <button class="btn-remove" (click)="removePaperFile()">Remove</button>
+          </div>
+
+          <div class="or-divider" *ngIf="!paperFile">OR</div>
+
+          <div class="form-group full-width" *ngIf="!paperFile">
+            <textarea class="form-control" rows="6" placeholder="Manually paste the text of the question paper here if you don't have a file..." [(ngModel)]="paperRawText"></textarea>
+          </div>
+        </div>
+
+        <button class="btn-generate" (click)="submitReview()" [disabled]="isReviewing || !isReviewFormValid">
+          Run AI Audit
+        </button>
+      </div>
+
+      <!-- VIEW 2: THE AUDIT DASHBOARD -->
+      <div *ngIf="hasAuditResults">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <h3 style="margin: 0;">Audit Findings</h3>
+          <button class="btn-secondary" (click)="resetAudit()">Audit Another Paper</button>
+        </div>
+
+        <!-- The Scorecard -->
+        <div class="scorecard-grid">
+          <div class="score-card">
+            <h4>Questions Analyzed</h4>
+            <h2>{{ totalQuestions }}</h2>
+          </div>
+          <div class="score-card" [ngClass]="{'warning': outOfSyllabusCount > 0}">
+            <h4>Out of Syllabus Flags</h4>
+            <h2>{{ outOfSyllabusCount }}</h2>
+          </div>
+          <div class="score-card">
+            <h4>Difficulty Breakdown</h4>
+            <div style="font-size: 1.1em; font-weight: bold; margin-top: 10px; color: #333;">
+              <span style="color: #166534;">{{ easyCount }} E</span> | 
+              <span style="color: #854d0e;">{{ mediumCount }} M</span> | 
+              <span style="color: #991b1b;">{{ hardCount }} H</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detailed Breakdown Table -->
+        <div class="table-responsive">
+          <table class="preview-table">
+            <thead>
+              <tr>
+                <th width="8%">Q.No</th>
+                <th width="45%">Question Extracted</th>
+                <th width="12%">Difficulty</th>
+                <th width="35%">AI Cognitive Feedback & Syllabus Check</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of auditResults">
+                <td style="text-align: center;"><strong>{{ row.qNo }}</strong></td>
+                <td>{{ row.questionText }}</td>
+                <td style="text-align: center;">
+                  <span class="badge" 
+                        [ngClass]="{
+                          'badge-green': row.difficulty.toLowerCase() === 'easy',
+                          'badge-yellow': row.difficulty.toLowerCase() === 'medium',
+                          'badge-orange': row.difficulty.toLowerCase() === 'hard'
+                        }">
+                    {{ row.difficulty }}
+                  </span>
+                </td>
+                <td>
+                  <div style="margin-bottom: 8px;">
+                    <span class="badge badge-red" *ngIf="row.isOutOfSyllabus">⚠️ Out of Syllabus</span>
+                    <span class="badge badge-green" *ngIf="!row.isOutOfSyllabus">✓ Aligned</span>
+                  </div>
+                  <p style="margin: 0; font-size: 0.9em; color: #444; line-height: 1.4;">{{ row.cognitiveFeedback }}</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </div>
