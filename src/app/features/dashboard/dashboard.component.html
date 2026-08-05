@@ -1,14 +1,28 @@
+<!-- Top Navigation Bar with Logo and Logout -->
+<div class="app-top-nav">
+  <div class="app-logo-container">
+    <svg class="app-logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" fill="none">
+      <rect width="36" height="36" rx="10" fill="#4f46e5" fill-opacity="0.1"/>
+      <path d="M11 9C11 8.44772 11.4477 8 12 8H20.5858C20.851 8 21.1054 8.10536 21.2929 8.29289L25.7071 12.7071C25.8946 12.8946 26 13.149 26 13.4142V27C26 27.5523 25.5523 28 25 28H12C11.4477 28 11 27.5523 11 27V9Z" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M15 15H21" stroke="#4f46e5" stroke-width="2" stroke-linecap="round"/>
+      <path d="M15 19H22" stroke="#4f46e5" stroke-width="2" stroke-linecap="round"/>
+      <path d="M24 7L24.8536 9.14645L27 10L24.8536 10.8536L24 13L23.1464 10.8536L21 10L23.1464 9.14645L24 7Z" fill="#4f46e5"/>
+    </svg>
+    <span class="app-logo-text">QuestionCraft</span>
+  </div>
+  <button class="btn-logout" (click)="logout()">Logout</button>
+</div>
+
 <div class="dashboard-container">
-  <!-- Top Header Bar -->
-  <div class="header-bar">
-    <h2>Question Paper Generator</h2>
-    <button class="btn-logout" (click)="logout()">Logout</button>
+  <!-- Page Header Title -->
+  <div class="header-bar" style="border: none; padding-bottom: 0; margin-bottom: 20px; box-shadow: none; background: transparent;">
+    <h2 style="margin: 0; font-size: 24px; color: #111827;">Question Paper Generator</h2>
   </div>
 
-  <!-- Main Centered Content -->
+  <!-- Main Centered Content Card -->
   <div class="card" style="position: relative;">
     
-    <!-- 🟢 UPDATED: The Loading Overlay (Now handles generation AND reviewing) -->
+    <!-- Loading Overlay -->
     <div class="loading-overlay" *ngIf="isGenerating || isReviewing">
       <div class="spinner"></div>
       <div class="loading-text">
@@ -19,7 +33,7 @@
       </div>
     </div>
 
-    <!-- 🟢 UPDATED: Tab Navigation (Added Review Tab) -->
+    <!-- Tab Navigation -->
     <div class="tab-navigation" style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; justify-content: flex-start;">
       <button class="btn-outline" (click)="switchTab('create')" 
         [ngStyle]="{'background-color': currentTab === 'create' ? '#eef2ff' : 'transparent', 
@@ -47,16 +61,11 @@
     <!-- Success/Error Messages -->
     <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
 
-    <!-- ============================================== -->
-    <!-- TAB 1: THE CREATE FLOW (Form & Preview)        -->
-    <!-- ============================================== -->
+    <!-- TAB 1: THE CREATE FLOW -->
     <div *ngIf="currentTab === 'create'">
-      
-      <!-- VIEW 1: THE CONFIG FORM -->
       <div *ngIf="!isPreviewMode">
         <h3>Configure Your Test Paper</h3>
 
-        <!-- Side-by-Side Form Row 1 -->
         <div class="form-row">
           <div class="form-group">
             <label>Education Board <span class="asterisk">*</span></label>
@@ -80,7 +89,6 @@
           </div>
         </div>
 
-        <!-- Side-by-Side Form Row 2 -->
         <div class="form-row">
           <div class="form-group">
             <label>Subject <span class="asterisk">*</span></label>
@@ -93,13 +101,11 @@
           </div>
         </div>
 
-        <!-- Full Width Row -->
         <div class="form-group full-width">
           <label>Chapters / Topics</label>
           <textarea class="form-control" placeholder="Enter chapters separated by commas (e.g., Electricity, Magnetic Effects)" [(ngModel)]="paperConfig.chapters" name="chapters"></textarea>
         </div>
 
-        <!-- Generate Button -->
         <button class="btn-generate" (click)="previewPaper()" 
           [disabled]="isGenerating || !paperConfig.board || !paperConfig.classLevel || !paperConfig.subject || !paperConfig.totalMarks">
           <span *ngIf="isGenerating">Drafting Paper with AI...</span>
@@ -107,14 +113,12 @@
         </button>
       </div>
 
-      <!-- VIEW 2: THE PREVIEW UI -->
       <div *ngIf="isPreviewMode" class="preview-container">
         <div class="preview-header">
           <h3>Draft Preview</h3>
           <button class="btn-secondary" (click)="editCriteria()" [disabled]="isGenerating">Edit Form</button>
         </div>
 
-        <!-- Preview Table -->
         <div class="table-responsive">
           <table class="preview-table">
             <thead>
@@ -126,25 +130,19 @@
             </thead>
             <tbody>
               <tr *ngFor="let row of parsedQuestions" [ngClass]="{'section-header': row.isHeader}">
-                
-                <!-- If it's a header, span all 3 columns -->
                 <td *ngIf="row.isHeader" colspan="3" class="center-text">
                   <strong>{{ row.questionText }}</strong>
                 </td>
-
-                <!-- If it's a standard question, render the 3 separate columns -->
                 <ng-container *ngIf="!row.isHeader">
                   <td class="center-text"><strong *ngIf="row.sNo">{{ row.sNo }}.</strong></td>
                   <td>{{ row.questionText }}</td>
                   <td class="center-text"><strong>{{ row.marks }}</strong></td>
                 </ng-container>
-
               </tr>
             </tbody>
           </table>
         </div>
 
-        <!-- Action Buttons -->
         <div class="preview-actions">
           <button class="btn-outline" (click)="previewPaper()" [disabled]="isGenerating">
             <span *ngIf="isGenerating">Regenerating...</span>
@@ -158,10 +156,7 @@
       </div>
     </div>
 
-
-    <!-- ============================================== -->
-    <!-- TAB 2: THE HISTORY VIEW                          -->
-    <!-- ============================================== -->
+    <!-- TAB 2: THE HISTORY VIEW -->
     <div *ngIf="currentTab === 'history'">
       <h3>Your Generated Papers</h3>
       <p style="font-size: 0.9em; color: gray; margin-bottom: 15px;">Documents are automatically cleared from the server after 30 days to save space.</p>
@@ -189,8 +184,6 @@
                 </button>
               </td>
             </tr>
-            
-            <!-- Empty State -->
             <tr *ngIf="paperHistory.length === 0">
               <td colspan="5" style="text-align: center; padding: 30px; color: gray;">
                 You haven't generated any papers yet.
@@ -201,33 +194,28 @@
       </div>
     </div>
 
-   <!-- ============================================== -->
-    <!-- 🟢 NEW TAB 3: THE REVIEW & AUDIT FLOW          -->
-    <!-- ============================================== -->
+    <!-- TAB 3: THE REVIEW & AUDIT FLOW -->
     <div *ngIf="currentTab === 'review'">
-    <!-- KEEP ONLY THIS WRAPPED IN THE ERROR BANNER -->
-<div class="error-banner" *ngIf="errorMessage">
-  <div class="error-banner-content">
-    <span style="font-size: 1.2em;">⚠️</span>
-    <div>
-      <strong>Action Required:</strong>
-      <div>{{ errorMessage }}</div>
-    </div>
-  </div>
-  <button class="error-banner-close" (click)="errorMessage = ''" title="Dismiss">✕</button>
-</div>
-      <!-- VIEW 1: THE UPLOAD FORM -->
+      <div class="error-banner" *ngIf="errorMessage">
+        <div class="error-banner-content">
+          <span style="font-size: 1.2em;">⚠️</span>
+          <div>
+            <strong>Action Required:</strong>
+            <div>{{ errorMessage }}</div>
+          </div>
+        </div>
+        <button class="error-banner-close" (click)="errorMessage = ''" title="Dismiss">✕</button>
+      </div>
+
       <div *ngIf="!hasAuditResults">
         <h3>Smart Review & Audit</h3>
         <p class="subtitle">Upload an existing paper. The AI will audit syllabus alignment, cognitive difficulty, and phrasing.</p>
 
-        <!-- 🟢 NEW: User Guidance Box -->
         <div class="guidance-box">
           <strong>💡 Before you upload:</strong><br>
-          To ensure accurate AI analysis, please verify that <strong>both</strong> your Syllabus Context and Question Paper strictly match the <strong>Subject</strong> and <strong>Class</strong> you select below. Mismatched files (e.g., a Math paper with an Economics syllabus) will be rejected by the AI validator.
+          To ensure accurate AI analysis, please verify that <strong>both</strong> your Syllabus Context and Question Paper strictly match the <strong>Subject</strong> and <strong>Class</strong> you select below. Mismatched files will be rejected by the AI validator.
         </div>
 
-        <!-- Target Demographic -->
         <div class="form-row">
           <div class="form-group">
             <label>Education Board <span class="asterisk">*</span></label>
@@ -254,23 +242,18 @@
           </div>
         </div>
 
-        <!-- SYLLABUS UPLOAD ZONE -->
         <div class="form-group full-width">
           <label>Allowed Syllabus Context <span class="asterisk">*</span></label>
-          
           <div class="dropzone" [ngClass]="{'drag-active': isDraggingSyllabus}" (dragover)="onDragOverSyllabus($event)" (dragleave)="onDragLeaveSyllabus($event)" (drop)="onDropSyllabus($event)" (click)="syllabusInput.click()" *ngIf="!syllabusFile">
             <p>Drag and drop your <strong>Syllabus Document</strong> here</p>
             <p class="subtext">Supports .pdf, .docx, and .xlsx</p>
             <input type="file" #syllabusInput (change)="onSyllabusFileSelected($event)" accept=".pdf,.docx,.xlsx" style="display: none;">
           </div>
-
           <div class="file-info" *ngIf="syllabusFile">
             <span>📄 {{ syllabusFile.name }}</span>
             <button class="btn-remove" (click)="removeSyllabusFile()">Remove</button>
           </div>
-
           <div class="or-divider" *ngIf="!syllabusFile">OR</div>
-
           <div class="form-group full-width" *ngIf="!syllabusFile">
             <textarea class="form-control" rows="4" placeholder="Manually paste the exact chapters, topics, or guidelines here..." [(ngModel)]="reviewConfig.syllabusText"></textarea>
           </div>
@@ -278,23 +261,18 @@
 
         <hr style="border: 0; border-top: 1px solid #eee; margin: 25px 0;">
 
-        <!-- QUESTION PAPER UPLOAD ZONE -->
         <div class="form-group full-width">
           <label>Upload Question Paper <span class="asterisk">*</span></label>
-          
           <div class="dropzone" [ngClass]="{'drag-active': isDraggingPaper}" (dragover)="onDragOverPaper($event)" (dragleave)="onDragLeavePaper($event)" (drop)="onDropPaper($event)" (click)="paperInput.click()" *ngIf="!paperFile">
             <p>Drag and drop your <strong>Question Paper</strong> here</p>
             <p class="subtext">Supports .pdf, .docx, and .xlsx</p>
             <input type="file" #paperInput (change)="onPaperFileSelected($event)" accept=".pdf,.docx,.xlsx" style="display: none;">
           </div>
-
           <div class="file-info" *ngIf="paperFile">
             <span>📄 {{ paperFile.name }}</span>
             <button class="btn-remove" (click)="removePaperFile()">Remove</button>
           </div>
-
           <div class="or-divider" *ngIf="!paperFile">OR</div>
-
           <div class="form-group full-width" *ngIf="!paperFile">
             <textarea class="form-control" rows="6" placeholder="Manually paste the text of the question paper here if you don't have a file..." [(ngModel)]="paperRawText"></textarea>
           </div>
@@ -305,14 +283,12 @@
         </button>
       </div>
 
-      <!-- VIEW 2: THE AUDIT DASHBOARD -->
       <div *ngIf="hasAuditResults">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
           <h3 style="margin: 0;">Audit Findings</h3>
           <button class="btn-secondary" (click)="resetAudit()">Audit Another Paper</button>
         </div>
 
-        <!-- The Scorecard -->
         <div class="scorecard-grid">
           <div class="score-card">
             <h4>Questions Analyzed</h4>
@@ -332,7 +308,6 @@
           </div>
         </div>
 
-        <!-- Detailed Breakdown Table -->
         <div class="table-responsive">
           <table class="preview-table">
             <thead>
@@ -368,7 +343,7 @@
             </tbody>
           </table>
         </div>
-
       </div>
-
     </div>
+  </div>
+</div>
