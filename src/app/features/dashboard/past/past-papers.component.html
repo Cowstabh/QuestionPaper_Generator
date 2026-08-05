@@ -1,0 +1,50 @@
+<div class="card" style="position: relative;">
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <div class="loading-text">Loading history...</div>
+  </div>
+
+  <!-- Messages -->
+  <div class="alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+  <div class="alert-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <div class="header-flex">
+    <h3>Your Generated Papers</h3>
+    <button class="btn-secondary" (click)="loadHistory()" [disabled]="isLoading">↻ Refresh</button>
+  </div>
+  <p class="subtitle">Documents are automatically cleared from the server after 30 days to save space.</p>
+
+  <div class="table-responsive">
+    <table class="preview-table">
+      <thead>
+        <tr>
+          <th width="25%" style="text-align: left; padding-left: 12px;">Date Created</th>
+          <th width="25%" style="text-align: left;">Subject</th>
+          <th width="25%" style="text-align: left;">Class & Board</th>
+          <th width="10%" style="text-align: center;">Marks</th>
+          <th width="15%" style="text-align: center;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let paper of paperHistory">
+          <td style="text-align: left; padding-left: 12px;">{{ paper.createdAt | date:'MMM d, y, h:mm a' }}</td>
+          <td style="text-align: left;"><strong>{{ paper.subject }}</strong></td>
+          <td style="text-align: left;">{{ paper.classLevel }} ({{ paper.board }})</td>
+          <td style="text-align: center;">{{ paper.totalMarks }}</td>
+          <td style="text-align: center;">
+            <button class="btn-generate action-btn" (click)="downloadFromHistory(paper)" [disabled]="isLoading">
+              Download
+            </button>
+          </td>
+        </tr>
+        
+        <tr *ngIf="paperHistory.length === 0 && !isLoading">
+          <td colspan="5" class="empty-state">
+            You haven't generated any papers yet.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

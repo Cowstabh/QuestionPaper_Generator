@@ -1,0 +1,75 @@
+<div class="dashboard-shell" [ngClass]="{'sidebar-collapsed': isSidebarCollapsed}">
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header-flex">
+      <div class="sidebar-brand" *ngIf="!isSidebarCollapsed">
+        <svg class="app-logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" fill="none">
+  <!-- Background Card Base -->
+  <rect width="36" height="36" rx="10" fill="#4f46e5" fill-opacity="0.12"/>
+  
+  <!-- Wizard Hat -->
+  <path d="M18 4L24 12H12L18 4Z" fill="#4f46e5"/>
+  <ellipse cx="18" cy="12" rx="7.5" ry="1.5" fill="#4f46e5"/>
+  <circle cx="21" cy="7" r="0.8" fill="#ffffff"/>
+  
+  <!-- Owl Head & Eyes -->
+  <circle cx="18" cy="21" r="6.5" fill="#4f46e5" fill-opacity="0.25"/>
+  <circle cx="15.5" cy="20" r="1.5" fill="#111827"/>
+  <circle cx="20.5" cy="20" r="1.5" fill="#111827"/>
+  <circle cx="15.2" cy="19.5" r="0.5" fill="#ffffff"/>
+  <circle cx="20.2" cy="19.5" r="0.5" fill="#ffffff"/>
+  
+  <!-- Beak -->
+  <polygon points="18,21.5 16.5,23.5 19.5,23.5" fill="#f59e0b"/>
+  
+  <!-- Magnifying Glass Inspecting Details -->
+  <circle cx="24" cy="26" r="4.5" stroke="#4f46e5" stroke-width="1.75" fill="#ffffff" fill-opacity="0.6"/>
+  <line x1="27" y1="29" x2="31" y2="33" stroke="#4f46e5" stroke-width="1.75" stroke-linecap="round"/>
+</svg>
+        <!-- 🟢 Updated Brand Name -->
+        <span class="app-logo-text">Exam Alchemist</span>
+      </div>
+      
+      <button class="hamburger-btn" (click)="toggleSidebar()" title="Toggle Navigation Menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a routerLink="/dashboard/draft" routerLinkActive="active" class="nav-item" [title]="isSidebarCollapsed ? 'Draft New Paper' : ''">
+        <span class="nav-icon">📄</span>
+        <span class="nav-text" *ngIf="!isSidebarCollapsed">Draft New Paper</span>
+      </a>
+      <a routerLink="/dashboard/history" routerLinkActive="active" class="nav-item" [title]="isSidebarCollapsed ? 'My Past Papers' : ''">
+        <span class="nav-icon">📂</span>
+        <span class="nav-text" *ngIf="!isSidebarCollapsed">My Past Papers</span>
+      </a>
+      <a routerLink="/dashboard/review" routerLinkActive="active" class="nav-item" [title]="isSidebarCollapsed ? 'Review & Audit' : ''">
+        <span class="nav-icon">🔍</span>
+        <span class="nav-text" *ngIf="!isSidebarCollapsed">Review & Audit</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn-logout" (click)="logout()" [title]="isSidebarCollapsed ? 'Logout' : ''">
+        <span class="nav-icon">🚪</span>
+        <span class="nav-text" *ngIf="!isSidebarCollapsed">Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- RIGHT MAIN CONTENT AREA -->
+  <main class="main-content">
+    <div class="header-bar">
+      <!-- 🟢 Updated Top Header Title -->
+      <h2 style="margin: 0; font-size: 24px; color: #111827;">The Exam Alchemist</h2>
+    </div>
+    <div class="content-viewport">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</div>

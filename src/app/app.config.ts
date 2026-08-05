@@ -1,21 +1,15 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient, withFetch, withInterceptorsFromDi, HTTP_INTERCEPTORS } from '@angular/common/http'; 
 import { routes } from './app.routes';
-import { ErrorInterceptor } from './error/error.interceptor'; 
+// 🟢 Ensure withInterceptors is imported from @angular/common/http
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http'; 
+// 🟢 Import the file you just created
+import { authInterceptor } from './guards/auth.interceptor'; 
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    
-    // Combine withFetch and withInterceptorsFromDi
-    provideHttpClient(
-      withFetch(), 
-      withInterceptorsFromDi() 
-    ),
-    
-    // Register the custom error interceptor
-    { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true }
+    // 🟢 Register the interceptor here
+    provideHttpClient(withFetch(), withInterceptors([authInterceptor])) 
   ]
 };

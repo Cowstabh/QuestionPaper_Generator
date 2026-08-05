@@ -1,0 +1,119 @@
+<div class="card" style="position: relative;">
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" *ngIf="isGenerating">
+    <div class="spinner"></div>
+    <div class="loading-text">{{ isPreviewMode ? 'Packaging Document...' : 'Drafting Paper with AI...' }}</div>
+    <div class="loading-subtext">Please wait, this usually takes 15 to 20 seconds.</div>
+  </div>
+
+  <!-- Messages -->
+  <div class="alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+  <div class="alert-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <!-- VIEW 1: CONFIG FORM -->
+  <div *ngIf="!isPreviewMode">
+    <h3>Configure Your Test Paper</h3>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Education Board <span class="asterisk">*</span></label>
+        <select class="form-control" [(ngModel)]="paperConfig.board" name="board">
+          <option value="" disabled selected>Select Board</option>
+          <option value="CBSE">CBSE</option>
+          <option value="ICSE">ICSE</option>
+          <option value="State Board">State Board</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Class / Grade <span class="asterisk">*</span></label>
+        <select class="form-control" [(ngModel)]="paperConfig.classLevel" name="classLevel">
+          <option value="" disabled selected>Select Class</option>
+          <option value="Class 9">Class 9</option>
+          <option value="Class 10">Class 10</option>
+          <option value="Class 11">Class 11</option>
+          <option value="Class 12">Class 12</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Subject <span class="asterisk">*</span></label>
+        <input type="text" class="form-control" placeholder="e.g. Physics, Mathematics" [(ngModel)]="paperConfig.subject" name="subject">
+      </div>
+
+      <div class="form-group">
+        <label>Total Marks <span class="asterisk">*</span></label>
+        <input type="number" class="form-control" placeholder="e.g. 80" [(ngModel)]="paperConfig.totalMarks" name="totalMarks">
+      </div>
+    </div>
+
+    <div class="form-group full-width">
+      <label>Chapters / Topics</label>
+      <textarea class="form-control" placeholder="Enter chapters separated by commas (e.g., Electricity, Magnetic Effects)" [(ngModel)]="paperConfig.chapters" name="chapters"></textarea>
+    </div>
+
+    <!-- Reference Document Upload Dropzone -->
+    <div class="form-group full-width">
+      <label>Reference Document / Syllabus PDF (Optional)</label>
+      <div class="dropzone" 
+           [ngClass]="{'drag-active': isDraggingReference}" 
+           (dragover)="onDragOverReference($event)" 
+           (dragleave)="onDragLeaveReference($event)" 
+           (drop)="onDropReference($event)" 
+           (click)="refInput.click()" 
+           *ngIf="!referenceFile">
+        <p>Drag and drop reference <strong>PDF / DOCX</strong> here</p>
+        <p class="subtext">Supports .pdf, .docx, and .xlsx</p>
+        <input type="file" #refInput (change)="onReferenceFileSelected($event)" accept=".pdf,.docx,.xlsx" style="display: none;">
+      </div>
+      <div class="file-info" *ngIf="referenceFile">
+        <span>📄 {{ referenceFile.name }}</span>
+        <button class="btn-remove" (click)="removeReferenceFile()">Remove</button>
+      </div>
+    </div>
+
+    <button class="btn-generate" (click)="previewPaper()" 
+      [disabled]="isGenerating || !paperConfig.board || !paperConfig.classLevel || !paperConfig.subject || !paperConfig.totalMarks">
+      <span>Generate Preview</span>
+    </button>
+  </div>
+
+  <!-- VIEW 2: PREVIEW UI -->
+  <div *ngIf="isPreviewMode" class="preview-container">
+    <div class="preview-header">
+      <h3>Draft Preview</h3>
+      <button class="btn-secondary" (click)="editCriteria()" [disabled]="isGenerating">Edit Form</button>
+    </div>
+
+    <div class="table-responsive">
+      <table class="preview-table">
+        <thead>
+          <tr>
+            <th width="10%">Q.No</th>
+            <th width="80%">Question</th>
+            <th width="10%">Marks</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of parsedQuestions" [ngClass]="{'section-header': row.isHeader}">
+            <td *ngIf="row.isHeader" colspan="3" class="center-text">
+              <strong>{{ row.questionText }}</strong>
+            </td>
+            <ng-container *ngIf="!row.isHeader">
+              <td class="center-text"><strong *ngIf="row.sNo">{{ row.sNo }}.</strong></td>
+              <td>{{ row.questionText }}</td>
+              <td class="center-text"><strong>{{ row.marks }}</strong></td>
+            </ng-container>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="preview-actions">
+      <button class="btn-outline" (click)="previewPaper()" [disabled]="isGenerating">Regenerate with AI</button>
+      <button class="btn-generate" (click)="downloadPaper()" [disabled]="isGenerating">Approve & Download (.docx)</button>
+    </div>
+  </div>
+</div>

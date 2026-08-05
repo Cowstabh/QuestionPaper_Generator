@@ -1,0 +1,193 @@
+<div class="card" style="position: relative;">
+  
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" *ngIf="isReviewing">
+    <div class="spinner"></div>
+    <div class="loading-text">AI is auditing your paper...</div>
+    <div class="loading-subtext">Running multi-pass syllabus and cognitive checks.</div>
+  </div>
+
+  <!-- Error Banner -->
+  <div class="error-banner" *ngIf="errorMessage">
+    <div class="error-banner-content">
+      <span style="font-size: 1.2em;">⚠️</span>
+      <div>
+        <strong>Action Required:</strong>
+        <div>{{ errorMessage }}</div>
+      </div>
+    </div>
+    <button class="error-banner-close" (click)="errorMessage = ''" title="Dismiss">✕</button>
+  </div>
+
+  <!-- Success Message -->
+  <div class="alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+
+  <!-- VIEW 1: UPLOAD & CONFIG FORM -->
+  <div *ngIf="!hasAuditResults">
+    <h3>Smart Review & Audit</h3>
+    <p class="subtitle">Upload an existing paper. The AI will audit syllabus alignment, cognitive difficulty, and phrasing.</p>
+
+    <div class="guidance-box">
+      <strong>💡 Before you upload:</strong><br>
+      To ensure accurate AI analysis, please verify that <strong>both</strong> your Syllabus Context and Question Paper strictly match the <strong>Subject</strong> and <strong>Class</strong> you select below. Mismatched files will be rejected by the AI validator.
+    </div>
+
+    <!-- Configuration Row -->
+    <div class="form-row">
+      <div class="form-group">
+        <label>Education Board <span class="asterisk">*</span></label>
+        <select class="form-control" [(ngModel)]="reviewConfig.board" name="board">
+          <option value="" disabled selected>Select Board</option>
+          <option value="CBSE">CBSE</option>
+          <option value="ICSE">ICSE</option>
+          <option value="State Board">State Board</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Target Class / Grade <span class="asterisk">*</span></label>
+        <select class="form-control" [(ngModel)]="reviewConfig.classLevel" name="classLevel">
+          <option value="" disabled selected>Select Class</option>
+          <option value="Class 9">Class 9</option>
+          <option value="Class 10">Class 10</option>
+          <option value="Class 11">Class 11</option>
+          <option value="Class 12">Class 12</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Subject <span class="asterisk">*</span></label>
+        <input type="text" class="form-control" placeholder="e.g. Economics" [(ngModel)]="reviewConfig.subject" name="subject">
+      </div>
+    </div>
+
+    <!-- SYLLABUS UPLOAD ZONE -->
+    <div class="form-group full-width">
+      <label>Allowed Syllabus Context <span class="asterisk">*</span></label>
+      
+      <div class="dropzone" 
+           [ngClass]="{'drag-active': isDraggingSyllabus}" 
+           (dragover)="onDragOverSyllabus($event)" 
+           (dragleave)="onDragLeaveSyllabus($event)" 
+           (drop)="onDropSyllabus($event)" 
+           (click)="syllabusInput.click()" 
+           *ngIf="!syllabusFile">
+        <p>Drag and drop your <strong>Syllabus Document</strong> here</p>
+        <p class="subtext">Supports .pdf, .docx, and .xlsx</p>
+        <input type="file" #syllabusInput (change)="onSyllabusFileSelected($event)" accept=".pdf,.docx,.xlsx" style="display: none;">
+      </div>
+
+      <div class="file-info" *ngIf="syllabusFile">
+        <span>📄 {{ syllabusFile.name }}</span>
+        <button class="btn-remove" (click)="removeSyllabusFile()">Remove</button>
+      </div>
+
+      <div class="or-divider" *ngIf="!syllabusFile">OR</div>
+
+      <div class="form-group full-width" *ngIf="!syllabusFile">
+        <textarea class="form-control" rows="4" placeholder="Manually paste the exact chapters, topics, or guidelines here..." [(ngModel)]="reviewConfig.syllabusText" name="syllabusText"></textarea>
+      </div>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0;">
+
+    <!-- QUESTION PAPER UPLOAD ZONE -->
+    <div class="form-group full-width">
+      <label>Upload Question Paper <span class="asterisk">*</span></label>
+      
+      <div class="dropzone" 
+           [ngClass]="{'drag-active': isDraggingPaper}" 
+           (dragover)="onDragOverPaper($event)" 
+           (dragleave)="onDragLeavePaper($event)" 
+           (drop)="onDropPaper($event)" 
+           (click)="paperInput.click()" 
+           *ngIf="!paperFile">
+        <p>Drag and drop your <strong>Question Paper</strong> here</p>
+        <p class="subtext">Supports .pdf, .docx, and .xlsx</p>
+        <input type="file" #paperInput (change)="onPaperFileSelected($event)" accept=".pdf,.docx,.xlsx" style="display: none;">
+      </div>
+
+      <div class="file-info" *ngIf="paperFile">
+        <span>📄 {{ paperFile.name }}</span>
+        <button class="btn-remove" (click)="removePaperFile()">Remove</button>
+      </div>
+
+      <div class="or-divider" *ngIf="!paperFile">OR</div>
+
+      <div class="form-group full-width" *ngIf="!paperFile">
+        <textarea class="form-control" rows="6" placeholder="Manually paste the text of the question paper here if you don't have a file..." [(ngModel)]="paperRawText" name="paperRawText"></textarea>
+      </div>
+    </div>
+
+    <button class="btn-generate" (click)="submitReview()" [disabled]="isReviewing || !isReviewFormValid">
+      Run AI Audit
+    </button>
+  </div>
+
+  <!-- VIEW 2: AUDIT FINDINGS DASHBOARD -->
+  <div *ngIf="hasAuditResults">
+    <div class="header-flex">
+      <h3>Audit Findings</h3>
+      <button class="btn-secondary" (click)="resetAudit()">Audit Another Paper</button>
+    </div>
+
+    <!-- Scorecards Grid -->
+    <div class="scorecard-grid">
+      <div class="score-card">
+        <h4>Questions Analyzed</h4>
+        <h2>{{ totalQuestions }}</h2>
+      </div>
+      
+      <div class="score-card" [ngClass]="{'warning': outOfSyllabusCount > 0}">
+        <h4>Out of Syllabus Flags</h4>
+        <h2>{{ outOfSyllabusCount }}</h2>
+      </div>
+      
+      <div class="score-card">
+        <h4>Difficulty Breakdown</h4>
+        <div class="diff-breakdown">
+          <span style="color: #166534;">{{ easyCount }} E</span> | 
+          <span style="color: #854d0e;">{{ mediumCount }} M</span> | 
+          <span style="color: #991b1b;">{{ hardCount }} H</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Table -->
+    <div class="table-responsive">
+      <table class="preview-table">
+        <thead>
+          <tr>
+            <th width="8%">Q.No</th>
+            <th width="45%">Question Extracted</th>
+            <th width="12%">Difficulty</th>
+            <th width="35%">AI Cognitive Feedback & Syllabus Check</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of auditResults">
+            <td style="text-align: center;"><strong>{{ row.qNo }}</strong></td>
+            <td>{{ row.questionText }}</td>
+            <td style="text-align: center;">
+  <span class="badge" 
+        [ngClass]="{
+          'badge-green': row.difficulty.toLowerCase() === 'easy',
+          'badge-yellow': row.difficulty.toLowerCase() === 'medium',
+          'badge-orange': row.difficulty.toLowerCase() === 'hard'
+        }">
+    {{ row.difficulty }}
+  </span>
+</td>
+            <td>
+              <div style="margin-bottom: 8px;">
+                <span class="badge badge-red" *ngIf="row.isOutOfSyllabus">⚠️ Out of Syllabus</span>
+                <span class="badge badge-green" *ngIf="!row.isOutOfSyllabus">✓ Aligned</span>
+              </div>
+              <p class="feedback-text">{{ row.cognitiveFeedback }}</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
