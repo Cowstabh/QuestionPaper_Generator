@@ -3,6 +3,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -21,7 +22,8 @@ export class LoginComponent {
   infoMessage = '';
   isLoading = false;
 
-  private apiUrl = 'http://13.233.120.111:8080/api/auth/login';
+  
+  private apiUrl = `${environment.apiUrl}/auth/login`;
 
   constructor(
     private http: HttpClient, 

@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule, isPlatformBrowser } from '@angular/common'; // 🟢 Import isPlatformBrowser
 import { FormsModule } from '@angular/forms';
+import { environment } from '../../../environments/environment';
+
 
 @Component({
   selector: 'app-verify',
@@ -18,7 +20,7 @@ export class VerifyComponent {
   successMessage = '';
   isLoading = false;
 
-  private apiUrl = 'http://13.233.120.111:8080/api/auth/verify';
+  private apiUrl = `${environment.apiUrl}/auth/verify`;
 
   // 🟢 Inject PLATFORM_ID to detect the environment
   constructor(

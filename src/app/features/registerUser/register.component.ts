@@ -4,6 +4,8 @@ import { Router, RouterModule } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Component, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { environment } from '../../../environments/environment';
+
 
 @Component({
   selector: 'app-register',
@@ -19,7 +21,7 @@ export class RegisterComponent {
   errorMessage = '';
   successMessage = '';
 
-  private apiUrl = 'http://13.233.120.111:8080/api/auth/register';
+  private apiUrl = `${environment.apiUrl}/auth/register`;
 
   constructor(
     private http: HttpClient, 

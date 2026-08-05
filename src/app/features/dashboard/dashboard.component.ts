@@ -5,6 +5,7 @@ import { HttpClient, HttpClientModule, HttpHeaders } from '@angular/common/http'
 import { Router, RouterModule } from '@angular/router';
 import { Subscription, interval } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
 interface QuestionRow {
   sNo?: string;
@@ -82,14 +83,13 @@ export class DashboardComponent implements OnDestroy {
   rawAiText = '';
   parsedQuestions: QuestionRow[] = [];
 
-  // Updated async API endpoints
-  private startJobUrl = 'http://13.233.120.111:8080/api/papers/preview/start';
-  private statusUrl = 'http://13.233.120.111:8080/api/papers/preview/status';
-  private downloadUrl = 'http://13.233.120.111:8080/api/papers/generate';
-  private historyUrl = 'http://13.233.120.111:8080/api/papers/history'; 
-  private historyDownloadUrl = 'http://13.233.120.111:8080/api/papers/history/download';
-  private reviewUrl = 'http://13.233.120.111:8080/api/papers/review'; 
-
+  // Updated async API endpoints using the environment variable
+  private startJobUrl = `${environment.apiUrl}/papers/preview/start`;
+  private statusUrl = `${environment.apiUrl}/papers/preview/status`;
+  private downloadUrl = `${environment.apiUrl}/papers/generate`;
+  private historyUrl = `${environment.apiUrl}/papers/history`; 
+  private historyDownloadUrl = `${environment.apiUrl}/papers/history/download`;
+  private reviewUrl = `${environment.apiUrl}/papers/review`;
   private pollingSubscription?: Subscription;
 
   constructor(
