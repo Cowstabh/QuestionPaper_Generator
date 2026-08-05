@@ -111,3 +111,16 @@ input:focus {
   color: #2f855a;
   border: 1px solid #9ae6b4;
 }
+
+.app-logo-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.app-logo-text {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.025em;
+}

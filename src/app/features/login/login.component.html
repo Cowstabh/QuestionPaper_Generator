@@ -1,31 +1,82 @@
+<div class="brand-header">
+  <div class="app-logo-container">
+    <svg class="app-logo-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" fill="none">
+      <rect width="36" height="36" rx="10" fill="#4f46e5" fill-opacity="0.1"/>
+      <path d="M11 9C11 8.44772 11.4477 8 12 8H20.5858C20.851 8 21.1054 8.10536 21.2929 8.29289L25.7071 12.7071C25.8946 12.8946 26 13.149 26 13.4142V27C26 27.5523 25.5523 28 25 28H12C11.4477 28 11 27.5523 11 27V9Z" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M15 15H21" stroke="#4f46e5" stroke-width="2" stroke-linecap="round"/>
+      <path d="M15 19H22" stroke="#4f46e5" stroke-width="2" stroke-linecap="round"/>
+      <path d="M24 7L24.8536 9.14645L27 10L24.8536 10.8536L24 13L23.1464 10.8536L21 10L23.1464 9.14645L24 7Z" fill="#4f46e5"/>
+    </svg>
+    <span class="app-logo-text">QuestionCraft</span>
+  </div>
+</div>
+
 <div class="login-container">
-  <div class="card">
-    <h2>Login to Your Account</h2>
+  <div class="login-card">
+    <div class="brand-header">
+      <h2>Welcome Back</h2>
+      <p>Please enter your details to sign in</p>
+    </div>
 
-    <!-- Error message for wrong password / server errors -->
-    <div *ngIf="errorMessage" class="alert-error">{{ errorMessage }}</div>
+    <!-- Error Alert -->
+    <div *ngIf="errorMessage" class="alert error-alert">
+      <svg xmlns="http://www.w3.org/2000/svg" class="alert-icon" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+      </svg>
+      <span>{{ errorMessage }}</span>
+    </div>
 
-    <!-- Info message for unregistered users before redirecting -->
-    <div *ngIf="infoMessage" class="alert-info">{{ infoMessage }}</div>
+    <!-- Info / Redirect Alert -->
+    <div *ngIf="infoMessage" class="alert info-alert">
+      <span>{{ infoMessage }}</span>
+    </div>
 
-    <form (ngSubmit)="onLogin()">
-      <div class="form-group">
+    <form (ngSubmit)="onLogin()" #loginForm="ngForm">
+      <div class="input-group">
         <label for="email">Email Address</label>
-        <input type="email" id="email" [(ngModel)]="credentials.email" name="email" required />
+        <input 
+          type="email" 
+          id="email" 
+          [(ngModel)]="credentials.email" 
+          name="email" 
+          required 
+          placeholder="name@example.com"
+        >
       </div>
 
-      <div class="form-group">
+      <div class="input-group">
         <label for="password">Password</label>
-        <input type="password" id="password" [(ngModel)]="credentials.password" name="password" required />
+        <div class="password-input-wrapper">
+          <input 
+            [type]="showPassword ? 'text' : 'password'" 
+            id="password" 
+            [(ngModel)]="credentials.password" 
+            name="password" 
+            required 
+            placeholder="••••••••"
+          >
+          <button type="button" class="eye-btn" (click)="togglePasswordVisibility()" tabindex="-1">
+            <!-- Eye Open Icon -->
+            <svg *ngIf="!showPassword" xmlns="http://www.w3.org/2000/svg" class="eye-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <!-- Eye Closed Icon -->
+            <svg *ngIf="showPassword" xmlns="http://www.w3.org/2000/svg" class="eye-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+            </svg>
+          </button>
+        </div>
       </div>
 
-      <button type="submit" class="btn-primary" [disabled]="isLoading">
-        {{ isLoading ? 'Logging in...' : 'Login' }}
+      <button type="submit" class="submit-btn" [disabled]="isLoading">
+        <span *ngIf="!isLoading">Sign In</span>
+        <span *ngIf="isLoading">Signing in...</span>
       </button>
     </form>
 
-    <p class="footer-text">
+    <div class="footer-text">
       Don't have an account? <a routerLink="/register">Register here</a>
-    </p>
+    </div>
   </div>
 </div>

@@ -21,8 +21,8 @@ export class LoginComponent {
   errorMessage = '';
   infoMessage = '';
   isLoading = false;
+  showPassword = false; // 🟢 Added state for password visibility
 
-  
   private apiUrl = `${environment.apiUrl}/auth/login`;
 
   constructor(
@@ -30,6 +30,11 @@ export class LoginComponent {
     private router: Router,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
+
+  // 🟢 Toggle visibility handler
+  togglePasswordVisibility() {
+    this.showPassword = !this.showPassword;
+  }
 
   onLogin() {
     this.isLoading = true;
@@ -51,16 +56,13 @@ export class LoginComponent {
         }
       },
       error: (err) => {
-        // If the backend tells us the user hasn't verified their OTP yet
         if (err.status === 403 && err.error?.status === 'USER_UNCONFIRMED') {
           this.infoMessage = 'Account not verified. Redirecting to verification page...';
           
-          // Safely store the email only in the browser context
           if (isPlatformBrowser(this.platformId)) {
             localStorage.setItem('verifyEmail', err.error.email);
           }
           
-          // Kick them over to the OTP screen
           setTimeout(() => {
             this.router.navigate(['/verify']);
           }, 1500);
